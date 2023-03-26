@@ -38,6 +38,8 @@ def get_fee(product: str) -> float:
 
 def deposit(username: str, token: str, amount: float):
     db['balances'][username][token] += amount
+    print(username, "Deposited", amount, token, db['balances'][username][token])
+
 
 def withdraw(username: str, token: str, amount: float):
     if db['balances'][username][token] >= amount:
@@ -113,6 +115,21 @@ def get_liquidity():
             liquidity[pair]["liquidity_b"] += amounts["amount_b"]
 
     return liquidity
+def get_balance(username: str):
+    # Calculate the total liquidity provided by the user
+    total_liquidity = defaultdict(lambda: defaultdict(float))
+    for pair, amounts in db["liquidity_pools"][username].items():
+        token_a, token_b = pair.split("-")
+        total_liquidity[token_a]["amount"] += amounts["amount_a"]
+        total_liquidity[token_b]["amount"] += amounts["amount_b"]
+
+    # Calculate the total value of each token in the user's balance
+    total_value = defaultdict(float)
+    print(username, db['balances'][username])
+    for token, amount in db["balances"][username].items():
+        total_value[token] = amount + total_liquidity[token]["amount"]
+
+    return {"balances": db["balances"][username], "total_value": total_value, "liquidity_pools": total_liquidity}
 
 
 def get_exchange_rates():
@@ -147,7 +164,7 @@ def place_order_route(input_data: PlaceOrderInput, user: str = Depends(get_curre
 
 @app.get("/balance/")
 def balance_route(user: str = Depends(get_current_user)):
-    return db["balances"][user]
+    return get_balance(user)
 
 @app.post("/add_liquidity/")
 def add_liquidity_route(input_data: AddLiquidityInput, user: str = Depends(get_current_user)):
@@ -286,6 +303,10 @@ def matching_engine():
 
 if __name__ == "__main__":
     import uvicorn
+    # deposit("admin", "USD", 1000)
+    # deposit("admin", "USD", 500)
+    # print(get_balance("admin"))
+    # add_liquidity("admin", "BTC", "ETH", 100, 100)
     engine_thread = threading.Thread(target=matching_engine)
     engine_thread.start()
 
