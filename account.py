@@ -26,7 +26,6 @@ def get_balance(username: str):
 
     # Calculate the total value of each token in the user's balance
     total_value = defaultdict(float)
-    print(username, db['balances'][username])
     for token, amount in db["balances"][username].items():
         total_value[token] = amount + total_liquidity[token]
 

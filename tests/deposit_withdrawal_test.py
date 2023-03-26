@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from account import get_balance, deposit, withdraw
-from main import add_liquidity
+from main import add_liquidity, remove_liquidity
 
 
 class DepositAndWithdrawalTest(TestCase):
@@ -28,5 +28,10 @@ class DepositAndWithdrawalTest(TestCase):
         self.assertEqual({'GBP': 100,
                           'USD': 120}, balance["liquidity_pools"])
 
-
+        remove_liquidity("test", "GBP", "USD")
+        balance = get_balance("test")
+        self.assertEqual({'GBP': 100.0, 'USD': 120.0}, balance["balances"])
+        self.assertEqual({'GBP': 100.0, 'USD': 120.0}, balance["total_value"])
+        self.assertEqual({'GBP': 0,
+                          'USD': 0}, balance["liquidity_pools"])
 

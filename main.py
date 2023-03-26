@@ -60,16 +60,18 @@ def add_liquidity(username: str, token_a: str, token_b: str, amount_a: float, am
         db['balances'][username][token_a] -= amount_a
         db['balances'][username][token_b] -= amount_b
         db['liquidity_pools'][username][f"{token_a}-{token_b}"] = (amount_a, amount_b)
+        print(username, "added liquiditity for", token_a, token_b, db['liquidity_pools'][username][f"{token_a}-{token_b}"])
     else:
         raise ValueError("Insufficient balance")
 
 def remove_liquidity(username: str, token_a: str, token_b: str):
     pool_key = f"{token_a}-{token_b}"
-    if pool_key in db['liquidity_pools'] and username in db['liquidity_pools'][pool_key]:
-        amount_a, amount_b = db['liquidity_pools'][pool_key][username]
+    if pool_key in db['liquidity_pools'][username]:
+        amount_a, amount_b = db['liquidity_pools'][username][pool_key]
         db['balances'][username][token_a] += amount_a
         db['balances'][username][token_b] += amount_b
-        del db['liquidity_pools'][pool_key][username]
+        del db['liquidity_pools'][username][pool_key]
+        print(username, "removed liquidity for", token_a, token_b, amount_a, amount_b)
     else:
         raise ValueError("No liquidity provided for this pool")
 
