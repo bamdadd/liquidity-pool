@@ -114,6 +114,17 @@ def get_liquidity():
 
     return liquidity
 
+
+def get_exchange_rates():
+    exchange_rates = defaultdict(float)
+
+    for pair, liquidity in db["liquidity_pools"].items():
+        token_a, token_b = pair.split("-")
+        rate = liquidity / db["liquidity_pools"][f"{token_b}-{token_a}"]
+        exchange_rates[pair] = rate
+
+    return exchange_rates
+
 # API
 @app.post("/deposit/")
 def deposit_route(input_data: DepositInput, user: str = Depends(get_current_user)):
@@ -162,6 +173,18 @@ def order_book_route():
 def liquidity_route():
     return get_liquidity()
 
+
+@app.get("/exchange_rates/")
+def exchange_rates_route():
+    return get_exchange_rates()
+
+@app.get("/exchange_rates/{pair}")
+def exchange_rate_route(pair: str):
+    token_a, token_b = pair.split("-")
+    rate = db["liquidity_pools"][pair] / db["liquidity_pools"][f"{token_b}-{token_a}"]
+    return {"pair": pair, "rate": rate}
+
+
 @app.on_event("startup")
 async def startup_event():
     endpoints = []
@@ -207,8 +230,8 @@ def execute_trade(buy_order: dict, sell_order: dict):
     trade_price = (buy_order["price"] + sell_order["price"]) / 2
 
     # Check available liquidity in the liquidity pool
-    liquidity_a = db["liquidity_pool"][token_a]
-    liquidity_b = db["liquidity_pool"][token_b]
+    liquidity_a = db["liquidity_pools"][token_a]
+    liquidity_b = db["liquidity_pools"][token_b]
     max_trade_amount = min(liquidity_a / trade_price, liquidity_b)
 
     # Adjust trade amount if it exceeds available liquidity
@@ -220,8 +243,8 @@ def execute_trade(buy_order: dict, sell_order: dict):
     # Update balances and liquidity pool
     db["balances"][buy_order["username"]][token_a] += trade_amount
     db["balances"][sell_order["username"]][token_b] += trade_amount * trade_price
-    db["liquidity_pool"][token_a] -= trade_amount * trade_price
-    db["liquidity_pool"][token_b] -= trade_amount
+    db["liquidity_pools"][token_a] -= trade_amount * trade_price
+    db["liquidity_pools"][token_b] -= trade_amount
 
     # Return remaining orders or None if fully executed
     return (
@@ -265,4 +288,5 @@ if __name__ == "__main__":
     import uvicorn
     engine_thread = threading.Thread(target=matching_engine)
     engine_thread.start()
+
     uvicorn.run("main:app", host="127.0.0.1", port=8000)
