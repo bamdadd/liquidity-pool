@@ -20,9 +20,7 @@ def get_balance(username: str):
     # Calculate the total liquidity provided by the user
     total_liquidity = defaultdict(float)
     for pair, amounts in db["liquidity_pools"][username].items():
-        print(pair, amounts)
         token_a, token_b = pair.split("-")
-        print(total_liquidity[token_a], total_liquidity[token_b])
         total_liquidity[token_a] += amounts[0]
         total_liquidity[token_b] += amounts[1]
 

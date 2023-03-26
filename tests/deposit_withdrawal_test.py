@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from account import get_balance, deposit, withdraw
-from db import reset_db
 from main import add_liquidity
 
 
