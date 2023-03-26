@@ -48,5 +48,36 @@ Content-Type: application/json
 ###
 
 
+POST localhost:8000/deposit?username=user1&password=password1
+Content-Type: application/json
 
+{
+  "username": "user1",
+  "password": "password1",
+  "amount": 5,
+  "token": "BTC"
+}
+###
 
+POST localhost:8000/place_order?username=user1&password=password1
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "password1",
+  "amount": 1,
+  "product": "BTC-USD",
+  "price": 100,
+  "type": "sell"
+}
+###
+
+POST localhost:8000/add_liquidity/?username=user1&password=password1
+Content-Type: application/json
+
+{
+  "amount_a": 1,
+  "amount_b": 1000,
+  "token_a": "BTC",
+  "token_b": "USD"
+}

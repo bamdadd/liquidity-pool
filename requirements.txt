@@ -5,3 +5,4 @@ graphene
 graphene-file-upload
 starlette
 PyYAML
+pytest

@@ -5,25 +5,11 @@ from collections import defaultdict
 import yaml
 from fastapi import FastAPI, Depends, HTTPException
 
+from account import deposit, withdraw, get_balance
+from db import db
 from models import DepositInput, WithdrawInput, PlaceOrderInput, AddLiquidityInput, RemoveLiquidityInput
 
 app = FastAPI()
-# Load credentials
-with open("credentials.txt", "r") as f:
-    credentials = [tuple(line.strip().split(',')) for line in f.readlines()]
-# Load config
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
-
-# In-memory database
-db = {
-    'users': credentials,
-    'balances': defaultdict(lambda: defaultdict(float)),
-    'orders': [],
-    'liquidity_pools': defaultdict(lambda: defaultdict(float)),
-}
-
-# Functions
 
 def get_current_user(username: str, password: str):
     if authenticate(username, password):
@@ -34,18 +20,13 @@ def authenticate(username: str, password: str) -> bool:
     return (username, password) in db['users']
 
 def get_fee(product: str) -> float:
+    def get_config():
+        with open("config.yaml", "r") as f:
+            return yaml.safe_load(f)
+
+    config = get_config()
     return config['fees'].get(product, 0)
 
-def deposit(username: str, token: str, amount: float):
-    db['balances'][username][token] += amount
-    print(username, "Deposited", amount, token, db['balances'][username][token])
-
-
-def withdraw(username: str, token: str, amount: float):
-    if db['balances'][username][token] >= amount:
-        db['balances'][username][token] -= amount
-    else:
-        raise ValueError("Insufficient balance")
 
 def place_order(username: str, order_type: str, product: str, amount: float, price: float):
     if order_type not in ["buy", "sell"]:
@@ -78,7 +59,7 @@ def add_liquidity(username: str, token_a: str, token_b: str, amount_a: float, am
     if db['balances'][username][token_a] >= amount_a and db['balances'][username][token_b] >= amount_b:
         db['balances'][username][token_a] -= amount_a
         db['balances'][username][token_b] -= amount_b
-        db['liquidity_pools'][f"{token_a}-{token_b}"][username] = (amount_a, amount_b)
+        db['liquidity_pools'][username][f"{token_a}-{token_b}"] = (amount_a, amount_b)
     else:
         raise ValueError("Insufficient balance")
 
@@ -115,21 +96,6 @@ def get_liquidity():
             liquidity[pair]["liquidity_b"] += amounts["amount_b"]
 
     return liquidity
-def get_balance(username: str):
-    # Calculate the total liquidity provided by the user
-    total_liquidity = defaultdict(lambda: defaultdict(float))
-    for pair, amounts in db["liquidity_pools"][username].items():
-        token_a, token_b = pair.split("-")
-        total_liquidity[token_a]["amount"] += amounts["amount_a"]
-        total_liquidity[token_b]["amount"] += amounts["amount_b"]
-
-    # Calculate the total value of each token in the user's balance
-    total_value = defaultdict(float)
-    print(username, db['balances'][username])
-    for token, amount in db["balances"][username].items():
-        total_value[token] = amount + total_liquidity[token]["amount"]
-
-    return {"balances": db["balances"][username], "total_value": total_value, "liquidity_pools": total_liquidity}
 
 
 def get_exchange_rates():
