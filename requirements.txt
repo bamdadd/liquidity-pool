@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pydantic
+graphene
+graphene-file-upload
+starlette
+PyYAML

@@ -1,0 +1,52 @@
+POST localhost:8000/deposit?username=admin&password=admin&amount=100&token=USD
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin",
+  "amount": 200,
+  "token": "USD"
+}
+
+###
+
+GET localhost:8000/balance?username=admin&password=admin
+
+###
+POST localhost:8000/withdraw/?username=admin&password=admin&amount=100&token=USD
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin",
+  "amount": 100,
+  "token": "USD"
+}
+
+
+###
+
+GET localhost:8000/balance?username=admin&password=admin
+
+###
+
+#    type: str
+#    product: str
+#    amount: float
+#    price: float
+POST localhost:8000/place_order?username=admin&password=admin
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin",
+  "amount": 1,
+  "product": "BTC-USD",
+  "price": 100,
+  "type": "buy"
+}
+###
+
+
+
+
